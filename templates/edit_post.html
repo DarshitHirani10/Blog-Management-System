@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Edit Post{% endblock %}
+{% block content %}
+<div class="container">
+  <h3>Edit Blog Post</h3>
+  {% if msg %}
+    <div class="alert alert-danger">{{ msg }}</div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input type="text" name="title" class="form-control" required value="{{ post.title }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Content</label>
+      <textarea name="content" class="form-control" rows="6" required>{{ post.content }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Image</label>
+      <input type="file" name="image" accept="image/*" class="form-control">
+      {% if post.image %}
+        <img src="{{ url_for('static', filename=post.image) }}" alt="Current Image" class="img-thumbnail mt-2" style="max-width:150px;">
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Or Image URL</label>
+      <input type="text" name="image_url" class="form-control" placeholder="https://example.com/image.jpg" value="{{ post.image_url }}">
+    </div>
+    <button class="btn btn-primary">Update</button>
+    <a href="{{ url_for('view_profile', user_id=post.user_id) }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

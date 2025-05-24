@@ -4,5 +4,8 @@
 # Python virtual environment
 .venv/
 
-# database
+# Flask instance folder
 instance/
+
+# Flask static files
+static/

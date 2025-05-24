@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card shadow" style="width: 400px;">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-4">Register</h3>
+      {% if msg %}
+        <div class="alert alert-danger">{{ msg }}</div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required value="{{ form_data.username if form_data and form_data.username }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" required value="{{ form_data.email if form_data and form_data.email }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Bio</label>
+          <textarea name="bio" class="form-control" rows="3">{{ form_data.bio if form_data and form_data.bio }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Profile Picture</label>
+          <input type="file" name="profile_pic" accept="image/*" class="form-control">
+        </div>
+        <button class="btn btn-primary w-100">Register</button>
+        <a href="{{ url_for('login') }}" class="btn btn-link w-100 mt-2">Already have an account? Login</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

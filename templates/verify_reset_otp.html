@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card shadow" style="width: 400px;">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-4">Verify OTP</h3>
+      <form method="POST">
+        <div class="mb-3">
+          <label for="otp" class="form-label">Enter the OTP sent to your email:</label>
+          <input type="text" class="form-control" id="otp" name="otp" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
+      </form>
+      <div class="text-center mt-3">
+        <a href="{{ url_for('forgot_password') }}">Resend OTP</a>
+      </div>
+      {% if msg %}
+        <div class="alert alert-danger mt-3">{{ msg }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
