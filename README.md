@@ -39,20 +39,25 @@ A secure and feature-rich **Flask-based Blog Management System** that allows use
 ```bash
 git clone https://github.com/DarshitHirani10/Blog-Management-System.git
 cd blog-management-system
+```
 
 ### 2. Create and Activate Virtual Environment
+```bash
 python -m venv venv
+
 # Windows
 venv\Scripts\activate
 # macOS/Linux
 source venv/bin/activate
-
+```
 
 ### 3. Install Dependencies
+```bash
 pip install -r requirements.txt
-
+```
 
 ### 4. Set Up Environment Variables
+```bash
 Create a .env file in the root directory and add the following:
 SECRET_KEY=your-secret-key
 MAIL_SERVER=smtp.gmail.com
@@ -60,7 +65,10 @@ MAIL_PORT=587
 MAIL_USE_TLS=True
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+```
 
 ### 5. Run the Flask App
+```bash
 flask run  or 
 python app.py run
+```
