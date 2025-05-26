@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, flash, abort
+from flask import Flask, render_template, request, url_for, redirect, session, abort
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -28,7 +28,6 @@ def is_allowed_image(file_storage):
         return True
     except Exception:
         return False                        
-    # return imghdr.what(None, file_bytes) is not None
 
 
 # Initialize Flask app
@@ -36,7 +35,6 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///blogify.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "static/uploads"
-
 load_dotenv()
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER")
@@ -45,15 +43,19 @@ app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
 app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS")
 
+
 # # Initialize Flask-Mail
 mail = Mail(app)
+
 
 # # # Initialize database
 db = SQLAlchemy(app)
 
+
 # # # Create uploads folder if it doesn't exist
 if not os.path.exists(app.config["UPLOAD_FOLDER"]):
     os.makedirs(app.config["UPLOAD_FOLDER"])
+
 
 # # Define User model
 class User(db.Model):
@@ -63,12 +65,12 @@ class User(db.Model):
     password = db.Column(db.String(150), nullable=False)
     bio = db.Column(db.Text, default='')
     profile_pic = db.Column(db.String(300), default='default.png')
-
     posts = db.relationship('Post', backref='author', lazy=True)
     comments = db.relationship('Comment', backref='commenter', lazy=True)
     likes = db.relationship('Like', backref='liker', lazy=True)
     followers = db.relationship('Follow', foreign_keys='Follow.following_id', backref='following', lazy='dynamic')
     following = db.relationship('Follow', foreign_keys='Follow.follower_id', backref='follower', lazy='dynamic')
+
 
 # # Define Blog model
 class Post(db.Model):
@@ -76,27 +78,27 @@ class Post(db.Model):
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     image = db.Column(db.String(300))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comments = db.relationship('Comment', backref='post', lazy=True, cascade="all, delete-orphan")
     likes = db.relationship('Like', backref='post', lazy=True, cascade="all, delete-orphan")
+
 
 # # Define Comment model
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
 
 # # Define Like model
 class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
 
 # # Define Follow model
 class Follow(db.Model):
@@ -125,7 +127,6 @@ def welcome():
             posts = Post.query.order_by(Post.created_at.desc()).all()
     else:
         posts = Post.query.order_by(Post.created_at.desc()).all()
-
     posts_data = []
     for post in posts:
         likes = Like.query.filter_by(post_id=post.id).count()
@@ -145,6 +146,7 @@ def welcome():
         })
     return render_template('welcome.html', username=username, posts_data=posts_data)
 
+
 # # Register route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -163,7 +165,6 @@ def register():
             'bio': bio
         }
         profile_pic_file = request.files.get('profile_pic')
-
         # Check if username or email is already used
         if User.query.filter_by(username=username).first():
             msg = 'Username already exists.'
@@ -174,7 +175,6 @@ def register():
         if password != confirm_password:
             msg = 'Passwords do not match.'
             return render_template('register.html', msg=msg, form_data=form_data)
-
        # Handle profile picture upload
         profile_pic_path = 'default.png'
         if profile_pic_file and profile_pic_file.filename:
@@ -187,10 +187,8 @@ def register():
                 return render_template('register.html', msg=msg, form_data=form_data)
         else:
             profile_pic_path = 'default.png'
-
         # Generate a random 6-digit OTP
         otp = str(random.randint(100000, 999999))
-
         # Store temp user data and OTP in session
         session['temp_user'] = {
             'username': username,
@@ -200,7 +198,6 @@ def register():
             'profile_pic': profile_pic_path
         }
         session['otp'] = otp
-
         # Send the OTP email
         try:
             otp_msg = Message(
@@ -215,23 +212,20 @@ def register():
             msg = 'Failed to send OTP. Please try again later.'
             print("Email error:", e)
             return render_template('register.html', msg=msg)
-
     return render_template('register.html', msg=msg)
+
 
 # # OTP verification route
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
     msg = ''
     temp_user = session.get('temp_user')
-
     # No temp user in session? Redirect to register
     if not temp_user:
         return redirect(url_for('register'))
-
     if request.method == 'POST':
         entered_otp = request.form.get('otp')
         actual_otp = session.get('otp')
-
         if entered_otp == actual_otp:
             # Create and save the user
             hashed_password = generate_password_hash(temp_user['password'])
@@ -244,17 +238,15 @@ def verify_otp():
             )
             db.session.add(new_user)
             db.session.commit()
-
             # Clear session
             session.pop('temp_user', None)
             session.pop('otp', None)
-
             msg = 'Registration successful. Please log in.'
             return render_template('welcome.html', msg=msg, username=temp_user['username'])
         else:
             msg = 'Invalid OTP. Please try again.'
-
     return render_template('verify_otp.html', msg=msg)
+
 
 # # Forgot password route
 @app.route('/forgot_password', methods=['GET', 'POST'])
@@ -280,8 +272,8 @@ def forgot_password():
                 msg = 'Failed to send OTP. Try again later.'
         else:
             msg = 'Email not registered.'
-
     return render_template('forgot_password.html', msg=msg)
+
 
 # # OTP verification for password reset
 @app.route('/verify_reset_otp', methods=['GET', 'POST'])
@@ -289,7 +281,6 @@ def verify_reset_otp():
     msg = ''
     if not session.get('reset_email'):
         return redirect(url_for('forgot_password'))
-
     if request.method == 'POST':
         entered_otp = request.form.get('otp')
         actual_otp = session.get('reset_otp')
@@ -297,7 +288,6 @@ def verify_reset_otp():
             return redirect(url_for('reset_password'))
         else:
             msg = 'Invalid OTP. Try again.'
-    
     return render_template('verify_reset_otp.html', msg=msg)
 
 
@@ -308,29 +298,23 @@ def reset_password():
     email = session.get('reset_email')
     if not email:
         return redirect(url_for('forgot_password'))
-
     if request.method == 'POST':
         password = request.form['password']
         confirm = request.form['confirm']
-
         if password != confirm:
             msg = 'Passwords do not match.'
             return render_template('reset_password.html', msg=msg)
-
         user = User.query.filter_by(email=email).first()
         if user:
             user.password = generate_password_hash(password)
             db.session.commit()
-
             # Clean up session
             session.pop('reset_email', None)
             session.pop('reset_otp', None)
-
             msg = 'Password reset successful. Please log in.'
             return render_template('login.html', msg=msg)
         else:
             msg = 'User not found.'
-    
     return render_template('reset_password.html', msg=msg)
 
 
@@ -338,25 +322,20 @@ def reset_password():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     msg = ''
-    
     # Check if a user is already logged in
     if 'username' in session:
         return render_template('welcome.html', msg=msg, username=session['username'])
-
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['username'] = username
             session['user_id'] = user.id  # Store user ID in session
             return redirect(url_for('welcome'))  # Redirect to welcome page
-
         else:
             msg = 'Invalid username or password.'
-            return render_template('login.html', msg=msg)  # <-- Fix: render login.html with error
-    
+            return render_template('login.html', msg=msg)
     return render_template('login.html', msg=msg)
 
 
@@ -450,24 +429,21 @@ def delete_post(post_id):
 def comment(post_id):
     msg = ''
     post = Post.query.get_or_404(post_id)
-
     if request.method == 'POST':
         content = request.form['content']
-
         # Check if the user is logged in
         if 'username' not in session:
             msg = 'You need to log in to comment.'
             return render_template('login.html', msg=msg)
-
         # Create and save the comment
         user = User.query.filter_by(username=session['username']).first()
         new_comment = Comment(content=content, post=post, commenter=user)
         db.session.add(new_comment)
         db.session.commit()
-
         msg = 'Comment added successfully!'
         return redirect(url_for('view_post', post_id=post.id))
     
+
 # # Like post route
 @app.route('/like/<int:post_id>', methods=['POST'])
 def like(post_id):
@@ -583,14 +559,12 @@ def view_post(post_id):
     post = Post.query.get_or_404(post_id)
     comments = Comment.query.filter_by(post_id=post.id).all()
     likes = Like.query.filter_by(post_id=post.id).count()
-
     # Check if the logged-in user is following the post's author
     if 'username' in session:
         logged_in_user = User.query.filter_by(username=session['username']).first()
         is_following = Follow.query.filter_by(follower_id=logged_in_user.id, following_id=post.user_id).first() is not None
     else:
         is_following = False
-
     return render_template('post.html', post=post, comments=comments, likes=likes, is_following=is_following)
 
 
@@ -599,16 +573,12 @@ def view_post(post_id):
 def delete_comment(comment_id, post_id):
     if 'user_id' not in session:
         abort(403)
-
     comment = Comment.query.get_or_404(comment_id)
-
     # Only allow the comment's owner to delete
     if comment.user_id != session['user_id']:
         abort(403)
-
     db.session.delete(comment)
     db.session.commit()
-
     return redirect(url_for('view_post', post_id=post_id))
 
 
