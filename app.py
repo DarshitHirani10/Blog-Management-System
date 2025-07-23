@@ -13,7 +13,7 @@ import io
 
 
 def is_allowed_image(file_storage):
-    """Check if uploaded file is a valid image using Pillow."""
+    # Check if uploaded file is a valid image using Pillow
     if not file_storage or not file_storage.filename:
         return False
     allowed_ext = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}

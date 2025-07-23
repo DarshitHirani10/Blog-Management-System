@@ -9,3 +9,8 @@ instance/
 
 # Flask static files
 static/
+
+__pycache__/
+
+
+.vscode/
